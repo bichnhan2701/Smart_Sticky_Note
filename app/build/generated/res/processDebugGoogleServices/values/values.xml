@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gcm_defaultSenderId" translatable="false">462181676391</string>
+    <string name="google_api_key" translatable="false">AIzaSyDP_TO70QsdN_Mot_Ppdb2YnJweqbVdKH4</string>
+    <string name="google_app_id" translatable="false">1:462181676391:android:c8c78efa876cd22cb4abc2</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDP_TO70QsdN_Mot_Ppdb2YnJweqbVdKH4</string>
+    <string name="google_storage_bucket" translatable="false">smartstickynote-3a501.firebasestorage.app</string>
+    <string name="project_id" translatable="false">smartstickynote-3a501</string>
+</resources>
