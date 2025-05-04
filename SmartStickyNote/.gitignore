@@ -1,3 +1,10 @@
+/captures
+.gradle
+.idea
+.vscode
+.kotlin
+app/build
+
 # Android Studio
 .idea/
 *.iml
