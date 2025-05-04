@@ -5,6 +5,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -59,6 +60,7 @@ dependencies {
     implementation(libs.androidx.runtime)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.ui)
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     // Navigation
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.runtime.ktx)
@@ -73,6 +75,17 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
     implementation (libs.hilt.navigation.compose)
+    // Coil
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    // Firebase
+    implementation ("com.google.firebase:firebase-auth-ktx")
+    implementation ("com.google.android.gms:play-services-auth:21.0.0")
+    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    // GlanceAppWidget
+    implementation ("androidx.glance:glance-appwidget:1.0.0")
+    implementation ("androidx.glance:glance-material3:1.0.0")
+
 
 
     testImplementation(libs.junit)

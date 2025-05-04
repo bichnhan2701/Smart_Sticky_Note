@@ -1,5 +1,9 @@
 package com.example.smartstickynote.ui.screen
 
+import android.app.Activity
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -7,36 +11,60 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.smartstickynote.R
 import com.example.smartstickynote.navigation.BottomNavBar
 import com.example.smartstickynote.navigation.Screen
 import com.example.smartstickynote.ui.components.ActionButton
+import com.example.smartstickynote.ui.viewmodel.UserProfileViewModel
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 
 @Composable
-fun UserProfileScreen(navController: NavController) {
-    var isDarkMode by remember { mutableStateOf(false) }
+fun UserProfileScreen(
+    navController: NavController,
+    viewModel: UserProfileViewModel = hiltViewModel()
+) {
+    val context = LocalContext.current
+    // Google Sign-In launcher
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.let {
+                viewModel.signInWithGoogleIntent(
+                    intent = it,
+                    onSuccess = { Toast.makeText(context, "Login successfully!", Toast.LENGTH_SHORT).show() },
+                    onError = { message -> Toast.makeText(context, message, Toast.LENGTH_SHORT).show() }
+                )
+            }
+        } else {
+            Toast.makeText(context, "Sign-in cancelled", Toast.LENGTH_SHORT).show()
+        }
+    }
+    // Google SignIn options
+    val gso = remember {
+        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(context.getString(R.string.google_web_client_id))
+            .requestEmail()
+            .build()
+    }
+    val googleSignInClient = remember { GoogleSignIn.getClient(context, gso) }
 
     Scaffold(
         bottomBar = { BottomNavBar(navController) { navController.navigate(Screen.Add.route) } }
@@ -57,35 +85,67 @@ fun UserProfileScreen(navController: NavController) {
                     .padding(top = 56.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                ProfileName()
+                if (viewModel.isUserLoggedIn && viewModel.user != null) {
+                    // Hiển thị tên người dùng
+                    Text(
+                        text = "${viewModel.user?.displayName}",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF39544F),
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    // Hiển thị email
+                    Text(
+                        text = viewModel.user?.email ?: "",
+                        fontSize = 16.sp,
+                        color = Color.Gray
+                    )
+                } else {
+                    // Nếu chưa đăng nhập, hiển thị như mặc định
+                    ProfileName()
+                }
 
                 ProfileSettings(
-                    isDarkMode = isDarkMode,
-                    onDarkModeChange = {
-
-                    },
-                    onHelpClick = {  },
-                    onAboutClick = {  }
+                    isDarkMode = viewModel.isDarkMode,
+                    onDarkModeChange = { viewModel.toggleDarkMode() },
+                    onHelpClick = {},
+                    onAboutClick = {}
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                ActionButton(
-                    text = "Login with Google",
-                    onClick = {
-
-                    },
-                    containerColor = Color(0xFF4CAF50),
-                    contentColor = Color.White,
-                    modifier = Modifier.fillMaxWidth(0.6f)
-                )
+                if (viewModel.isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+                } else if (!viewModel.isUserLoggedIn) {
+                    ActionButton(
+                        text = "Login with Google",
+                        onClick = {
+                            val signInIntent = googleSignInClient.signInIntent
+                            googleSignInLauncher.launch(signInIntent)
+                        },
+                        containerColor = Color(0xFF4CAF50),
+                        contentColor = Color.White,
+                        modifier = Modifier.fillMaxWidth(0.6f)
+                    )
+                } else {
+                    ActionButton(
+                        text = "Logout",
+                        onClick = {
+                            viewModel.signOut()
+                            Toast.makeText(context, "Logged out successfully!", Toast.LENGTH_SHORT).show()
+                        },
+                        containerColor = Color(0xFFE53935),
+                        contentColor = Color.White,
+                        modifier = Modifier.fillMaxWidth(0.6f)
+                    )
+                }
             }
 
-            ProfileAvatar()
+            ProfileAvatar(viewModel.user?.photoUrl?.toString()) // Hiển thị ảnh đại diện của người dùng
         }
     }
 }
-
 @Composable
 private fun ProfileHeader() {
     Box(
@@ -104,7 +164,6 @@ private fun ProfileHeader() {
         )
     }
 }
-
 @Composable
 private fun ProfileName() {
     Row(
@@ -115,14 +174,13 @@ private fun ProfileName() {
             .padding(top = 24.dp, bottom = 16.dp)
     ) {
         Text(
-            text = "Bich Nhan",
+            text = "No user signed in",
             fontSize = 20.sp,
             fontWeight = FontWeight.Normal,
             color = Color(0xFF39544F)
         )
     }
 }
-
 @Composable
 private fun ProfileSettings(
     isDarkMode: Boolean,
@@ -181,9 +239,8 @@ private fun ProfileSettings(
         }
     )
 }
-
 @Composable
-private fun ProfileAvatar() {
+private fun ProfileAvatar(photoUrl: String? = null) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -192,28 +249,33 @@ private fun ProfileAvatar() {
     ) {
         Box(
             modifier = Modifier
-                .size(135.dp) // lớn hơn ảnh một chút để tạo khung viền
+                .size(135.dp)
                 .clip(CircleShape)
-                .shadow(
-                    elevation = 8.dp,
-                    shape = CircleShape,
-                    ambientColor = Color.Gray,
-                    spotColor = Color.Gray
-                ),
+                .shadow(elevation = 8.dp, shape = CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.meo_loading),
-                contentDescription = "Default Avatar",
-                modifier = Modifier
-                    .size(130.dp)
-                    .clip(CircleShape)
-                    .background(Color.Gray)
-            )
+            if (photoUrl != null) {
+                AsyncImage(
+                    model = photoUrl,
+                    contentDescription = "User Avatar",
+                    modifier = Modifier
+                        .size(130.dp)
+                        .clip(CircleShape)
+                        .background(Color.Gray)
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.meo_loading),
+                    contentDescription = "Default Avatar",
+                    modifier = Modifier
+                        .size(130.dp)
+                        .clip(CircleShape)
+                        .background(Color.Gray)
+                )
+            }
         }
     }
 }
-
 @Composable
 fun SettingItem(
     icon: androidx.compose.ui.graphics.painter.Painter,
