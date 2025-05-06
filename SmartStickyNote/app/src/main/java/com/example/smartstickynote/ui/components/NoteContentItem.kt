@@ -30,8 +30,7 @@ fun NoteContentItem(
 ) {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(250.dp)
+            .fillMaxSize()
             .shadow(4.dp, RoundedCornerShape(16.dp), clip = false)
             .background(backgroundColor, RoundedCornerShape(16.dp))
             .padding(12.dp)

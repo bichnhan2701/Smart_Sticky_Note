@@ -1,11 +1,12 @@
 package com.example.smartstickynote.domain.model
 
 data class Note(
-    val id: String,
-    val title: String,
-    val content: String,
-    val priorityRate: String,
-    val isFavorite: Boolean,
-    val isPin: Boolean,
-    val createdAt: Long
+    var id: String = "",
+    var title: String = "",
+    var content: String = "",
+    var priorityRate: String = "",
+    var isFavorite: Boolean = false,
+    var isPin: Boolean = false,
+    var createdAt: Long = 0L,
+    var updatedAt: Long = 0L
 )

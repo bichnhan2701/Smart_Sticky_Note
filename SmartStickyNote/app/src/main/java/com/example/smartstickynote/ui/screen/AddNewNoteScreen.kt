@@ -54,7 +54,8 @@ fun AddNewNoteScreen(
                         priorityRate = selectedPriority,
                         isFavorite = false,
                         isPin = false,
-                        createdAt = System.currentTimeMillis()
+                        createdAt = System.currentTimeMillis(),
+                        updatedAt = System.currentTimeMillis()
                     )
                     viewModel.addNote(newNote)
                     navController.popBackStack() // quay lại trang Home

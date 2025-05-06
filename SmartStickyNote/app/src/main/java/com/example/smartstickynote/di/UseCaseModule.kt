@@ -1,12 +1,8 @@
 package com.example.smartstickynote.di
 
+import com.example.smartstickynote.domain.repository.AuthRepository
 import com.example.smartstickynote.domain.repository.NoteRepository
-import com.example.smartstickynote.domain.usecase.AddNoteUseCase
-import com.example.smartstickynote.domain.usecase.DeleteNoteUseCase
-import com.example.smartstickynote.domain.usecase.GetNoteByIdUseCase
-import com.example.smartstickynote.domain.usecase.GetNotesUseCase
-import com.example.smartstickynote.domain.usecase.ToggleFavoriteNoteUseCase
-import com.example.smartstickynote.domain.usecase.UpdateNoteUseCase
+import com.example.smartstickynote.domain.usecase.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,7 +12,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object UseCaseModule {
-
+    // NoteUseCase
     @Provides
     @Singleton
     fun provideAddNoteUseCase(repository: NoteRepository): AddNoteUseCase {
@@ -51,5 +47,40 @@ object UseCaseModule {
     @Singleton
     fun provideToggleFavoriteNoteUseCase(repository: NoteRepository): ToggleFavoriteNoteUseCase {
         return ToggleFavoriteNoteUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTogglePinNoteUseCase(repository: NoteRepository): TogglePinNoteUseCase {
+        return TogglePinNoteUseCase(repository)
+    }
+
+    @Provides
+    fun provideGetNoteForWidgetUseCase(repo: NoteRepository): GetNoteForWidgetUseCase {
+        return GetNoteForWidgetUseCase(repo)
+    }
+
+    @Provides
+    fun provideSyncNotesUseCase(
+        repository: NoteRepository
+    ): SyncNotesUseCase {
+        return SyncNotesUseCase(repository)
+    }
+
+    //UserUseCase
+    @Provides
+    @Singleton
+    fun provideSignInWithGoogleUseCase(
+        authRepository: AuthRepository
+    ): SignInWithGoogleUseCase {
+        return SignInWithGoogleUseCase(authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSignOutUseCase(
+        authRepository: AuthRepository
+    ): SignOutUseCase {
+        return SignOutUseCase(authRepository)
     }
 }

@@ -1,5 +1,7 @@
 package com.example.smartstickynote.ui.screen
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -10,10 +12,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,12 +24,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.smartstickynote.navigation.BottomNavBar
+import com.example.smartstickynote.ui.components.BottomNavBar
 import com.example.smartstickynote.navigation.Screen
 import com.example.smartstickynote.ui.components.FilterChip
 import com.example.smartstickynote.ui.components.GradientText
@@ -36,7 +41,9 @@ import com.example.smartstickynote.R
 import com.example.smartstickynote.domain.model.Filter
 import com.example.smartstickynote.domain.model.Note
 import com.example.smartstickynote.ui.components.DeleteNoteDialog
+import com.example.smartstickynote.ui.components.SearchBarWithButton
 import com.example.smartstickynote.ui.viewmodel.NoteViewModel
+import com.example.smartstickynote.utils.widget.WidgetUpdater
 import com.example.smartstickynote.utils.getColorByPriority
 
 @Composable
@@ -46,8 +53,22 @@ fun HomeScreen(
 ) {
     val notes by viewModel.notes.collectAsState()
     val filter by viewModel.setFilter.collectAsState()
+    var searchInput by remember { mutableStateOf("") }
     var noteToDelete by remember { mutableStateOf<Note?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val activeSearchQuery by viewModel.searchQuery.collectAsState()
+
+    val context = LocalContext.current
+
+    fun onPinNote(note: Note) {
+        val pinnedNotes = notes.filter { it.isPin }
+        if (!note.isPin && pinnedNotes.size >= 3) {
+            Toast.makeText(context, "Chỉ có thể pin tối đa 3 ghi chú!", Toast.LENGTH_SHORT).show()
+        } else {
+            viewModel.togglePin(note)
+            WidgetUpdater.updateWidgetNow(context)
+        }
+    }
 
     Scaffold(
         bottomBar = { BottomNavBar(navController) { navController.navigate(Screen.Add.route) } }
@@ -61,13 +82,19 @@ fun HomeScreen(
             // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 GradientText("Sticky Note", fontSize = 30.sp)
-                Icon(Icons.Default.Search, contentDescription = null)
             }
 
+            Spacer(modifier = Modifier.height(10.dp))
+
+            SearchBarWithButton(
+                searchInput = searchInput,
+                onInputChange = { searchInput = it },
+                onSearchClick = { viewModel.setSearchQuery(searchInput) }
+            )
             Spacer(modifier = Modifier.height(12.dp))
 
             // Filter Chips
@@ -105,6 +132,34 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            if (activeSearchQuery.isNotBlank()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp, bottom = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Kết quả tìm kiếm theo từ khóa \"${searchInput}\"",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = "Xem tất cả",
+                        color = Color(0xFF9C55FF),
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .clickable {
+                                searchInput = ""
+                                viewModel.setSearchQuery("")
+                            }
+                            .padding(start = 12.dp)
+                    )
+                }
+            }
+
             // Notes Grid
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
@@ -113,13 +168,17 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(notes) { note ->
+                    Log.d("NoteState", "Title: ${note.title}, isPin: ${note.isPin}")
+
                     NoteItem(
                         title = note.title,
                         content = note.content,
                         color = getColorByPriority(note.priorityRate),
                         isPinned = note.isPin,
                         isFavorite = note.isFavorite,
-                        onPin = {},
+                        onPin = {
+                            onPinNote(note)
+                        },
                         onDelete = {
                             noteToDelete = note
                             showDeleteDialog = true
@@ -147,6 +206,7 @@ fun HomeScreen(
                     noteTitle = it.title,
                     onConfirm = {
                         viewModel.deleteNote(it)
+                        WidgetUpdater.updateWidgetNow(context.applicationContext)
                         showDeleteDialog = false
                         noteToDelete = null
                     },

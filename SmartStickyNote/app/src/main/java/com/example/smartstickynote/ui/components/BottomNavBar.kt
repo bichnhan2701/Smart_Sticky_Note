@@ -1,4 +1,4 @@
-package com.example.smartstickynote.navigation
+package com.example.smartstickynote.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +24,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.smartstickynote.navigation.BottomNavItem
+import com.example.smartstickynote.navigation.Screen
 
 @Composable
 fun BottomNavBar(navController: NavController, onAddClick: () -> Unit) {

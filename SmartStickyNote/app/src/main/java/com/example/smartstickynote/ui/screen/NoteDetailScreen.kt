@@ -73,7 +73,7 @@ fun NoteDetailScreen(
                     Icon(
                         painter = painterResource(R.drawable.back_svgrepo_com),
                         contentDescription = "Back",
-                        modifier = Modifier.size(30.dp)
+                        modifier = Modifier.size(30.dp).padding(start = 0.dp)
                     )
                 }
                 Row {
@@ -112,6 +112,13 @@ fun NoteDetailScreen(
             // Created date
             Text(
                 text = "Created at ${note!!.createdAt.toDateTimeString()}",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+
+            // Updated date
+            Text(
+                text = "Updated at ${note!!.updatedAt.toDateTimeString()}",
                 fontSize = 14.sp,
                 color = Color.Gray
             )

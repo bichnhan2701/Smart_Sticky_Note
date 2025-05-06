@@ -31,4 +31,13 @@ interface NoteDao {
 
     @Query("SELECT * FROM notes WHERE isFavorite = 1")
     fun getFavoriteNotes(): Flow<List<NoteEntity>>
+
+    @Query("SELECT * FROM notes WHERE isPin = 1 ORDER BY createdAt DESC LIMIT 3")
+    suspend fun getPinNote(): NoteEntity?
+
+    @Query("SELECT * FROM notes")
+    suspend fun getAllNotesOnce(): List<NoteEntity>
+
+    @Query("SELECT * FROM notes WHERE id = :id")
+    suspend fun getNoteByIdOnce(id: String): NoteEntity?
 }

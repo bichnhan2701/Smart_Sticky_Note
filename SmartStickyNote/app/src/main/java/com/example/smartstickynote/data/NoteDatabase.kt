@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import com.example.smartstickynote.data.local.dao.NoteDao
 import com.example.smartstickynote.data.local.entity.NoteEntity
 
-@Database(entities = [NoteEntity::class], version = 1, exportSchema = false)
+@Database(entities = [NoteEntity::class], version = 2, exportSchema = false)
 abstract class NoteDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
 }

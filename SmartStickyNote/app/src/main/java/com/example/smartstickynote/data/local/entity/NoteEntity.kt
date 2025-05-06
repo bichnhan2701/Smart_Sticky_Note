@@ -11,5 +11,6 @@ data class NoteEntity(
     val priorityRate: String, // "High", "Medium", "Low"
     val isFavorite: Boolean,
     val isPin: Boolean,
-    val createdAt: Long
+    val createdAt: Long,
+    val updatedAt: Long
 )

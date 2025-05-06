@@ -28,9 +28,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.smartstickynote.R
-import com.example.smartstickynote.navigation.BottomNavBar
+import com.example.smartstickynote.ui.components.BottomNavBar
 import com.example.smartstickynote.navigation.Screen
 import com.example.smartstickynote.ui.components.ActionButton
+import com.example.smartstickynote.ui.viewmodel.NoteViewModel
 import com.example.smartstickynote.ui.viewmodel.UserProfileViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -38,7 +39,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 @Composable
 fun UserProfileScreen(
     navController: NavController,
-    viewModel: UserProfileViewModel = hiltViewModel()
+    viewModel: UserProfileViewModel = hiltViewModel(),
+    noteViewModel: NoteViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     // Google Sign-In launcher
@@ -65,6 +67,14 @@ fun UserProfileScreen(
             .build()
     }
     val googleSignInClient = remember { GoogleSignIn.getClient(context, gso) }
+
+    val wasLoggedIn = remember { mutableStateOf(false) }
+    LaunchedEffect(viewModel.isUserLoggedIn) {
+        if (viewModel.isUserLoggedIn && !wasLoggedIn.value) {
+            noteViewModel.restoreNotes()
+            wasLoggedIn.value = true
+        }
+    }
 
     Scaffold(
         bottomBar = { BottomNavBar(navController) { navController.navigate(Screen.Add.route) } }
