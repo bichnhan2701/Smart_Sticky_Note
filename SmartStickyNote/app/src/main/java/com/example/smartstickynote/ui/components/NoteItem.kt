@@ -124,18 +124,23 @@ fun NoteItem(
                     .padding(vertical = 8.dp)
             )
 
-            // Footer with Favorite icon
+            // Footer with Favorite and Pin icons
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.pin_svgrepo_com),
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
+                if (isPinned) {
+                    Icon(
+                        painter = painterResource(R.drawable.pin_svgrepo_com),
+                        contentDescription = "Pinned",
+                        modifier = Modifier.size(20.dp)
+                    )
+                } else {
+                    Spacer(modifier = Modifier.size(20.dp)) // giữ layout cân đối
+                }
 
                 IconButton(
                     onClick = onFavoriteClick,
