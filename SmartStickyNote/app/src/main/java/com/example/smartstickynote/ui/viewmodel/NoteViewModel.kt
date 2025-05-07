@@ -4,8 +4,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.smartstickynote.domain.model.Filter
+import com.example.smartstickynote.domain.model.Folder
 import com.example.smartstickynote.domain.model.Note
+import com.example.smartstickynote.domain.model.Tag
+import com.example.smartstickynote.domain.repository.FolderRepository
+import com.example.smartstickynote.domain.repository.TagRepository
 import com.example.smartstickynote.domain.usecase.*
+import com.example.smartstickynote.utils.EnhancedAutoCategorizer
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -30,6 +35,9 @@ class NoteViewModel @Inject constructor(
     private val toggleFavoriteNoteUseCase: ToggleFavoriteNoteUseCase,
     private val togglePinNoteUseCase: TogglePinNoteUseCase,
     private val syncNotesUseCase: SyncNotesUseCase,
+    private val folderRepository: FolderRepository,
+    private val tagRepository: TagRepository,
+    private val autoCategorizer: EnhancedAutoCategorizer,
     private val auth: FirebaseAuth
 ) : ViewModel() {
 
@@ -42,6 +50,12 @@ class NoteViewModel @Inject constructor(
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
     }
+
+    // Lấy danh sách thư mục
+    val folders: Flow<List<Folder>> = folderRepository.getFoldersWithCount()
+    
+    // Lấy danh sách thẻ
+    val tags: Flow<List<Tag>> = tagRepository.getTagsWithCount()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _notes = combine(_filter, _searchQuery) { filter, query ->
@@ -64,7 +78,18 @@ class NoteViewModel @Inject constructor(
 
     fun addNote(note: Note) {
         viewModelScope.launch {
-            addNoteUseCase(note)
+            // Thực hiện phân loại tự động trước khi thêm
+            val categories = autoCategorizer.suggestCategories(note)
+            val noteWithCategories = note.copy(autoCategories = categories)
+            
+            // Lưu ghi chú
+            addNoteUseCase(noteWithCategories)
+            
+            // Thêm thẻ cho ghi chú
+            noteWithCategories.tags.forEach { tag ->
+                tagRepository.addTagToNote(noteWithCategories.id, tag.id)
+            }
+            
             syncNotes()
         }
     }
@@ -82,7 +107,28 @@ class NoteViewModel @Inject constructor(
 
     fun updateNote(note: Note) {
         viewModelScope.launch {
-            updateNoteUseCase(note)
+            // Thực hiện phân loại tự động khi cập nhật
+            val categories = autoCategorizer.suggestCategories(note)
+            val noteWithCategories = note.copy(
+                autoCategories = categories,
+                updatedAt = System.currentTimeMillis()
+            )
+            
+            // Cập nhật ghi chú
+            updateNoteUseCase(noteWithCategories)
+            
+            // Xóa tất cả thẻ hiện tại
+            tagRepository.getTagsForNote(note.id).collect { currentTags ->
+                currentTags.forEach { tag ->
+                    tagRepository.removeTagFromNote(note.id, tag.id)
+                }
+                
+                // Thêm lại các thẻ mới
+                noteWithCategories.tags.forEach { tag ->
+                    tagRepository.addTagToNote(noteWithCategories.id, tag.id)
+                }
+            }
+            
             syncNotes()
         }
     }
@@ -98,6 +144,50 @@ class NoteViewModel @Inject constructor(
         viewModelScope.launch {
             togglePinNoteUseCase(note)
             syncNotes()
+        }
+    }
+    
+    // Thêm/xóa thẻ cho ghi chú
+    fun addTagToNote(noteId: String, tag: Tag) {
+        viewModelScope.launch {
+            tagRepository.addTagToNote(noteId, tag.id)
+        }
+    }
+    
+    fun removeTagFromNote(noteId: String, tag: Tag) {
+        viewModelScope.launch {
+            tagRepository.removeTagFromNote(noteId, tag.id)
+        }
+    }
+    
+    // Di chuyển ghi chú vào thư mục
+    fun moveNoteToFolder(noteId: String, folderId: String?) {
+        viewModelScope.launch {
+            folderRepository.moveNoteToFolder(noteId, folderId)
+        }
+    }
+    
+    // Lấy các thẻ của một ghi chú
+    fun getTagsForNote(noteId: String): Flow<List<Tag>> {
+        return tagRepository.getTagsForNote(noteId)
+    }
+    
+    // Lấy ghi chú theo thư mục
+    fun getNotesByFolder(folderId: String): Flow<List<Note>> {
+        return folderRepository.getNotesByFolder(folderId)
+    }
+    
+    // Lấy ghi chú theo thẻ
+    fun getNotesWithTag(tagId: String): Flow<List<Note>> {
+        return tagRepository.getNotesWithTag(tagId)
+    }
+    
+    // Lấy ghi chú theo danh mục tự động
+    fun getNotesByAutoCategory(category: String): Flow<List<Note>> {
+        return getNotesUseCase(Filter.NONE).map { notes ->
+            notes.filter { note -> 
+                note.autoCategories.contains(category)
+            }
         }
     }
 

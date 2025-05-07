@@ -14,6 +14,12 @@ interface NoteRepository {
     fun getNotes(filter: Filter): Flow<List<Note>>
     suspend fun getNotesForWidget(): Note?
 
+    // Tìm kiếm và phân loại
+    fun searchNotes(query: String): Flow<List<Note>>
+    fun getNotesByAutoCategory(category: String): Flow<List<Note>>
+    suspend fun updateAutoCategories(noteId: String, categories: List<String>)
+    
+    // Đồng bộ
     suspend fun syncAllNotesToFirebase(userId: String)
     suspend fun fetchAllNotesFromFirebase(userId: String)
 }
