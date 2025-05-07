@@ -88,7 +88,13 @@ dependencies {
     implementation ("androidx.glance:glance-appwidget:1.0.0")
     implementation ("androidx.glance:glance-material3:1.0.0")
 
-
+    // TensorFlow Lite
+    implementation("org.tensorflow:tensorflow-lite:2.10.0")
+    implementation("org.tensorflow:tensorflow-lite-metadata:0.4.2")
+    implementation("org.tensorflow:tensorflow-lite-task-text:0.4.2")
+    
+    // Gson - thêm thư viện này để xử lý JSON
+    implementation("com.google.code.gson:gson:2.10.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

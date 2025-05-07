@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -82,10 +83,33 @@ fun HomeScreen(
             // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 GradientText("Sticky Note", fontSize = 30.sp)
+                
+                // Organization Icons
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Thư mục
+                    IconButton(onClick = { navController.navigate(Screen.Folders.route) }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.folder_open),
+                            contentDescription = "Quản lý thư mục",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    
+                    // Thẻ
+                    IconButton(onClick = { navController.navigate(Screen.Tags.route) }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.label),
+                            contentDescription = "Quản lý thẻ",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -203,7 +227,6 @@ fun HomeScreen(
         ) {
             noteToDelete?.let {
                 DeleteNoteDialog(
-                    noteTitle = it.title,
                     onConfirm = {
                         viewModel.deleteNote(it)
                         WidgetUpdater.updateWidgetNow(context.applicationContext)

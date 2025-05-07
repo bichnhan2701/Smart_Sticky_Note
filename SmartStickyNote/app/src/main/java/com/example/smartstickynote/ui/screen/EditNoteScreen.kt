@@ -6,8 +6,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -32,9 +35,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.smartstickynote.R
 import com.example.smartstickynote.domain.model.Note
+import com.example.smartstickynote.domain.model.Tag
 import com.example.smartstickynote.navigation.Screen
+import com.example.smartstickynote.ui.components.AutoCategoryChips
 import com.example.smartstickynote.ui.components.DeleteNoteDialog
 import com.example.smartstickynote.ui.components.NoteContentItem
+import com.example.smartstickynote.ui.components.TagList
+import com.example.smartstickynote.ui.components.SimpleFolderData
+import com.example.smartstickynote.ui.components.SimpleFolderSelector
+import com.example.smartstickynote.ui.components.TagSelectionDialog
+import com.example.smartstickynote.ui.components.TagsRow
 import com.example.smartstickynote.ui.viewmodel.NoteViewModel
 
 @Composable
@@ -44,19 +54,51 @@ fun EditNoteScreen(
     viewModel: NoteViewModel = hiltViewModel()
 ) {
     val note by viewModel.getNoteById(noteId).collectAsState(initial = null)
+    val tagsForNote by viewModel.getTagsForNote(noteId).collectAsState(initial = emptyList())
+
+    // Danh sách thư mục và thẻ
+    val folders by viewModel.folders.collectAsState(initial = emptyList())
+    val allTags by viewModel.tags.collectAsState(initial = emptyList())
 
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
     var selectedPriority by remember { mutableStateOf("Medium") }
-
+    // Chuyển sang sử dụng SimpleFolderData cho UI
+    var selectedSimpleFolder by remember { mutableStateOf<SimpleFolderData?>(null) }
+    var selectedTags by remember { mutableStateOf<List<Tag>>(emptyList()) }
+    var autoCategories by remember { mutableStateOf<List<String>>(emptyList()) }
+    
+    var showTagDialog by remember { mutableStateOf(false) }
     var noteToDelete by remember { mutableStateOf<Note?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    
+    val scrollState = rememberScrollState()
+    
+    // Chuyển đổi danh sách Folder thành SimpleFolderData cho UI
+    val simpleFolders = folders.map { folder ->
+        SimpleFolderData(
+            id = folder.id,
+            name = folder.name,
+            color = folder.color,
+            noteCount = folder.noteCount
+        )
+    }
+    
     // Cập nhật state khi note được load
-    LaunchedEffect(note) {
+    LaunchedEffect(note, tagsForNote) {
         note?.let {
             title = it.title
             content = it.content
             selectedPriority = it.priorityRate
+            autoCategories = it.autoCategories
+            
+            // Cập nhật SimpleFolderData từ folderId
+            selectedSimpleFolder = if (it.folderId != null) {
+                simpleFolders.find { folder -> folder.id == it.folderId }
+            } else null
+            
+            // Cập nhật các thẻ đã chọn
+            selectedTags = tagsForNote
         }
     }
 
@@ -65,25 +107,30 @@ fun EditNoteScreen(
             CircularProgressIndicator()
         }
     } else {
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .verticalScroll(scrollState)
+        ) {
             // Header với Save, Delete, Cancel
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Spacer(modifier = Modifier.width(150.dp))
+                Spacer(modifier = Modifier.width(48.dp))
+                
                 IconButton(onClick = {
-                    if (title != note!!.title || content != note!!.content || selectedPriority != note!!.priorityRate) {
-                        viewModel.updateNote(
-                            note!!.copy(
-                                title = title,
-                                content = content,
-                                priorityRate = selectedPriority
-                            )
-                        )
-                    }
+                    // Cập nhật note với thông tin mới
+                    val updatedNote = note!!.copy(
+                        title = title,
+                        content = content,
+                        priorityRate = selectedPriority,
+                        folderId = selectedSimpleFolder?.id,
+                        tags = selectedTags,
+                        updatedAt = System.currentTimeMillis()
+                    )
+                    viewModel.updateNote(updatedNote)
                     navController.popBackStack()
                 }) {
                     Icon(
@@ -115,6 +162,7 @@ fun EditNoteScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Tiêu đề
             Text("Title", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
@@ -131,6 +179,7 @@ fun EditNoteScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Mức độ ưu tiên
             Text("Choose the priority rate", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -148,36 +197,92 @@ fun EditNoteScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Chọn thư mục
+            Text(
+                "Folder",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
             Spacer(modifier = Modifier.height(8.dp))
+            SimpleFolderSelector(
+                selectedFolder = selectedSimpleFolder,
+                folders = simpleFolders,
+                onFolderSelected = { newFolder ->
+                    selectedSimpleFolder = newFolder
+                }
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Chọn thẻ
+            Text(
+                "Tags",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            TagsRow(
+                selectedTags = selectedTags,
+                onTagRemoved = { tag -> 
+                    selectedTags = selectedTags.filterNot { it.id == tag.id }
+                },
+                onAddTagClick = { showTagDialog = true }
+            )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Nội dung
             Text("Content", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
             NoteContentItem(
                 value = content,
                 onValueChange = { content = it }
             )
+            
+            // Hiển thị các danh mục tự động
+            if (autoCategories.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Divider()
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                AutoCategoryChips(
+                    categories = autoCategories,
+                    onCategoryClick = { /* Có thể thêm xử lý khi người dùng nhấp vào */ }
+                )
+            }
+            
+            // Thêm khoảng trống cuối cùng
+            Spacer(modifier = Modifier.height(50.dp))
         }
-    }
-    AnimatedVisibility(
-        visible = showDeleteDialog && noteToDelete != null,
-        enter = fadeIn() + scaleIn(),
-        exit = fadeOut() + scaleOut()
-    ) {
-        noteToDelete?.let {
-            DeleteNoteDialog(
-                noteTitle = it.title,
-                onConfirm = {
-                    viewModel.deleteNote(it)
-                    showDeleteDialog = false
-                    noteToDelete = null
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true}
-                    }
+        
+        // Dialog chọn thẻ
+        if (showTagDialog) {
+            TagSelectionDialog(
+                availableTags = allTags,
+                selectedTags = selectedTags,
+                onTagSelected = { tag ->
+                    selectedTags = selectedTags + tag
                 },
-                onDismiss = {
+                onTagDeselected = { tag ->
+                    selectedTags = selectedTags.filterNot { it.id == tag.id }
+                },
+                onDismiss = { showTagDialog = false }
+            )
+        }
+        
+        // Dialog xóa
+        if (showDeleteDialog) {
+            DeleteNoteDialog(
+                onConfirm = {
+                    noteToDelete?.let {
+                        viewModel.deleteNote(it)
+                        navController.popBackStack()
+                    }
                     showDeleteDialog = false
-                    noteToDelete = null
-                }
+                },
+                onDismiss = { showDeleteDialog = false }
             )
         }
     }

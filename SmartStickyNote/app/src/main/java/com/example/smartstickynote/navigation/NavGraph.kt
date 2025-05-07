@@ -9,10 +9,12 @@ import androidx.navigation.navArgument
 import com.example.smartstickynote.domain.repository.PreferencesRepository
 import com.example.smartstickynote.ui.screen.AddNewNoteScreen
 import com.example.smartstickynote.ui.screen.EditNoteScreen
+import com.example.smartstickynote.ui.screen.FoldersScreen
 import com.example.smartstickynote.ui.screen.HomeScreen
 import com.example.smartstickynote.ui.screen.NoteDetailScreen
 import com.example.smartstickynote.ui.screen.OnboardingScreen
 import com.example.smartstickynote.ui.screen.SplashScreen
+import com.example.smartstickynote.ui.screen.TagsScreen
 import com.example.smartstickynote.ui.screen.UserProfileScreen
 
 @Composable
@@ -50,6 +52,12 @@ fun NavGraph(navController: NavHostController, preferences: PreferencesRepositor
         composable(BottomNavItem.Profile.route) {
             UserProfileScreen(navController)
         }
+        composable(Screen.Folders.route) {
+            FoldersScreen(navController)
+        }
+        composable(Screen.Tags.route) {
+            TagsScreen(navController)
+        }
         composable(
             route = Screen.Detail.route,
             arguments = listOf(navArgument("noteId") { type = NavType.StringType })
@@ -64,6 +72,5 @@ fun NavGraph(navController: NavHostController, preferences: PreferencesRepositor
             val noteId = backStackEntry.arguments?.getString("noteId") ?: return@composable
             EditNoteScreen(navController = navController, noteId = noteId)
         }
-
     }
 }
