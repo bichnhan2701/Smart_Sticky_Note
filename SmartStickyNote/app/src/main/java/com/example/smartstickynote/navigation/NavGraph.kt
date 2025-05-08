@@ -15,6 +15,9 @@ import com.example.smartstickynote.ui.screen.NoteDetailScreen
 import com.example.smartstickynote.ui.screen.OnboardingScreen
 import com.example.smartstickynote.ui.screen.SplashScreen
 import com.example.smartstickynote.ui.screen.UserProfileScreen
+import com.example.smartstickynote.ui.screen.AboutScreen
+import com.example.smartstickynote.ui.screen.HelpScreen
+
 
 @Composable
 fun NavGraph(navController: NavHostController, preferences: PreferencesRepository) {
@@ -67,6 +70,13 @@ fun NavGraph(navController: NavHostController, preferences: PreferencesRepositor
         }
         composable(Screen.Category.route) {
             CategoryScreen(navController = navController)
+        }
+        composable(Screen.About.route) {
+            AboutScreen(navController = navController)
+        }
+
+        composable(Screen.Help.route) {
+            HelpScreen(navController = navController)
         }
 
     }

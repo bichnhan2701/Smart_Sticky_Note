@@ -26,7 +26,7 @@ fun NoteContentItem(
     value: String,
     onValueChange: (String) -> Unit,
     readOnly: Boolean = false,
-    backgroundColor: Color = Color(0xFFE8EAF6)
+    backgroundColor: Color = Color(0xFFDDCDF8)
 ) {
     Box(
         modifier = Modifier

@@ -5,6 +5,8 @@ sealed class Screen(val route: String) {
     data object Onboarding : Screen("onboarding")
     data object Home : Screen("home")
     data object Add : Screen("add")
+    data object About : Screen("about")
+    data object Help : Screen("help")
     data object Detail : Screen("note_detail/{noteId}") {
         fun createId(noteId: String): String {
             return "note_detail/$noteId"
