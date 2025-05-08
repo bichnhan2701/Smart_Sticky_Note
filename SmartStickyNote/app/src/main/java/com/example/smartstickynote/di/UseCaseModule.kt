@@ -1,6 +1,7 @@
 package com.example.smartstickynote.di
 
 import com.example.smartstickynote.domain.repository.AuthRepository
+import com.example.smartstickynote.domain.repository.CategoryRepository
 import com.example.smartstickynote.domain.repository.NoteRepository
 import com.example.smartstickynote.domain.usecase.*
 import dagger.Module
@@ -67,6 +68,11 @@ object UseCaseModule {
         return SyncNotesUseCase(repository)
     }
 
+    @Provides
+    fun provideGetNotesByCategoryUseCase(noteRepository: NoteRepository): GetNotesByCategoryUseCase {
+        return GetNotesByCategoryUseCase(noteRepository)
+    }
+
     //UserUseCase
     @Provides
     @Singleton
@@ -83,4 +89,38 @@ object UseCaseModule {
     ): SignOutUseCase {
         return SignOutUseCase(authRepository)
     }
+
+    // CategoryUseCase
+    @Provides
+    fun provideAddCategoryUseCase(categoryRepository: CategoryRepository): AddCategoryUseCase {
+        return AddCategoryUseCase(categoryRepository)
+    }
+
+    @Provides
+    fun provideDeleteCategoryUseCase(categoryRepository: CategoryRepository): DeleteCategoryUseCase {
+        return DeleteCategoryUseCase(categoryRepository)
+    }
+
+    @Provides
+    fun provideGetAllCategoriesUseCase(repository: CategoryRepository): GetAllCategoriesUseCase {
+        return GetAllCategoriesUseCase(repository)
+    }
+
+    @Provides
+    fun provideGetCategoryByIdUseCase(repository: CategoryRepository): GetCategoryByIdUseCase {
+        return GetCategoryByIdUseCase(repository)
+    }
+
+    @Provides
+    fun provideUpdateCategoryUseCase(repository: CategoryRepository): UpdateCategoryUseCase {
+        return UpdateCategoryUseCase(repository)
+    }
+
+    @Provides
+    fun provideSyncCategoriesUseCase(
+        repository: CategoryRepository
+    ): SyncCategoriesUseCase {
+        return SyncCategoriesUseCase(repository)
+    }
+
 }

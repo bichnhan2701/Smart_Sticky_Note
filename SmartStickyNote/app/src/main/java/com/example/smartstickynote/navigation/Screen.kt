@@ -5,8 +5,6 @@ sealed class Screen(val route: String) {
     data object Onboarding : Screen("onboarding")
     data object Home : Screen("home")
     data object Add : Screen("add")
-    data object Folders : Screen("folders")
-    data object Tags : Screen("tags")
     data object Detail : Screen("note_detail/{noteId}") {
         fun createId(noteId: String): String {
             return "note_detail/$noteId"
@@ -17,4 +15,5 @@ sealed class Screen(val route: String) {
             return "edit_note/$noteId"
         }
     }
+    data object Category : Screen("category")
 }

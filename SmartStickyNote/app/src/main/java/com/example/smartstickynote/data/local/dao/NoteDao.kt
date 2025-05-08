@@ -41,21 +41,9 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE id = :id")
     suspend fun getNoteByIdOnce(id: String): NoteEntity?
 
-    @Query("SELECT * FROM notes WHERE folderId = :folderId ORDER BY createdAt DESC")
-    fun getNotesByFolder(folderId: String): Flow<List<NoteEntity>>
+    @Query("SELECT * FROM notes WHERE categoryId = :categoryId ORDER BY createdAt DESC")
+    fun getNotesByCategory(categoryId: String?): Flow<List<NoteEntity>>
 
-    @Query("SELECT * FROM notes WHERE folderId IS NULL ORDER BY createdAt DESC")
-    fun getNotesWithoutFolder(): Flow<List<NoteEntity>>
-
-    @Query("SELECT * FROM notes WHERE title LIKE '%' || :query || '%' OR content LIKE '%' || :query || '%'")
-    fun searchNotes(query: String): Flow<List<NoteEntity>>
-
-    @Query("SELECT * FROM notes WHERE autoCategories LIKE '%' || :category || '%'")
-    fun getNotesByAutoCategory(category: String): Flow<List<NoteEntity>>
-
-    @Query("UPDATE notes SET folderId = :folderId WHERE id = :noteId")
-    suspend fun moveNoteToFolder(noteId: String, folderId: String?)
-
-    @Query("SELECT * FROM notes WHERE userId = :userId OR userId IS NULL ORDER BY createdAt DESC")
-    fun getNotesForUser(userId: String?): Flow<List<NoteEntity>>
+    @Query("DELETE FROM notes")
+    suspend fun clearAllNotes()
 }

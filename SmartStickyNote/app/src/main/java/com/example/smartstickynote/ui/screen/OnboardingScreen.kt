@@ -37,24 +37,24 @@ fun OnboardingScreen(
 ) {
     val onboardingPages = listOf(
         OnboardingPage(
-            "Welcome to",
-            "Ghi chú mọi ý tưởng một cách nhanh chóng, gọn gàng và đầy màu sắc!",
-            null,
+            "Sticky Note",
+            "Ghi chú mọi ý tưởng một cách nhanh chóng, gọn gàng và trực quang!",
+            R.raw.welcome,
         ),
         OnboardingPage(
-            "Ghi chú",
-            "Tạo, chỉnh sửa và tìm kiếm ghi chú chỉ trong vài thao tác.",
-            R.raw.hello_animation
+            "Ghi chú thông minh",
+            "Tạo, chỉnh sửa, lọc, phân loại và tìm kiếm ghi chú chỉ trong vài thao tác.",
+            R.raw.note
         ),
         OnboardingPage(
-            "Tùy biến",
-            "Thay đổi màu sắc ghi chú để phân loại và cá nhân hóa dễ dàng.",
-            R.raw.card_animation
+            "Trực quang ghi chú",
+            "Thay đổi màu sắc ghi chú để phân biệt theo mức độ ưu tiên.",
+            R.raw.color
         ),
         OnboardingPage(
-            "Ghi chú nổi",
-            "Ghim ghi chú luôn hiển thị để không bao giờ bỏ lỡ điều quan trọng!",
-            R.raw.nothing_animation
+            "Widget tiện lợi",
+            "Ghim ghi chú thành widget để không bao giờ bỏ lỡ điều quan trọng!",
+            R.raw.widget
         )
     )
 
@@ -69,7 +69,7 @@ fun OnboardingScreen(
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-            OnboardingContent(page = onboardingPages[currentPage], isFirstPage = currentPage == 0)
+            OnboardingContent(page = onboardingPages[currentPage])
             DotIndicator(
                 totalDots = onboardingPages.size,
                 selectedIndex = currentPage
@@ -83,7 +83,7 @@ fun OnboardingScreen(
             ) {
                 if (currentPage > 0) {
                     TextButton(onClick = { currentPage-- }) {
-                        Text("Trở lại")
+                        Text("Trở lại", color = Color(0xFF4D7ED9))
                     }
                 } else {
                     Spacer(modifier = Modifier.width(64.dp))
@@ -109,13 +109,13 @@ fun OnboardingScreen(
                 .align(Alignment.TopEnd)
                 .padding(16.dp)
         ) {
-            Text("Bỏ qua")
+            Text("Bỏ qua", color = Color(0xFF4D7ED9))
         }
     }
 }
 
 @Composable
-fun OnboardingContent(page: OnboardingPage, isFirstPage: Boolean) {
+fun OnboardingContent(page: OnboardingPage) {
     val composition by rememberLottieComposition(
         LottieCompositionSpec.RawRes(page.animationResId ?: return)
     )
@@ -135,15 +135,7 @@ fun OnboardingContent(page: OnboardingPage, isFirstPage: Boolean) {
                 .fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(24.dp))
-        if (isFirstPage) {
-            GradientText(text = page.title)
-        } else {
-            Text(
-                text = page.title,
-                style = MaterialTheme.typography.headlineMedium,
-                textAlign = TextAlign.Center
-            )
-        }
+        GradientText(text = page.title)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = page.description,

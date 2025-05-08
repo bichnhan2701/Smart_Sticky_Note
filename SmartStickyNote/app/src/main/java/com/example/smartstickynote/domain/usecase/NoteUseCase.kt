@@ -19,9 +19,12 @@ class GetNotesUseCase @Inject constructor(
 }
 
 class DeleteNoteUseCase @Inject constructor(private val repository: NoteRepository) {
-    //    suspend operator fun invoke(note: Note) = repository.deleteNote(note)
     suspend operator fun invoke(note: Note, userId: String) {
         repository.deleteNote(note, userId)
+    }
+
+    suspend fun deleteAllLocalNotes() {
+        repository.clearAllLocalNotes()
     }
 }
 
@@ -76,3 +79,13 @@ class SyncNotesUseCase @Inject constructor(
         repository.fetchAllNotesFromFirebase(userId)
     }
 }
+
+class GetNotesByCategoryUseCase @Inject constructor(
+    private val noteRepository: NoteRepository
+) {
+    operator fun invoke(categoryId: String): Flow<List<Note>> {
+        return noteRepository.getNotesByCategory(categoryId)
+    }
+}
+
+

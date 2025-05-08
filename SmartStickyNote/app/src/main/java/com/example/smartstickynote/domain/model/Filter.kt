@@ -1,20 +1,17 @@
 package com.example.smartstickynote.domain.model
 
-enum class Filter {
-    NONE,            // Không lọc
-    HIGH,            // Lọc theo mức độ ưu tiên cao
-    MEDIUM,          // Lọc theo mức độ ưu tiên trung bình
-    LOW,             // Lọc theo mức độ ưu tiên thấp
-    FAVORITE,        // Lọc theo trạng thái yêu thích
-    FOLDER,          // Lọc theo thư mục
-    TAG,             // Lọc theo thẻ
-    AUTO_CATEGORY    // Lọc theo danh mục tự động
+sealed class Filter {
+    data object HIGH : Filter() // Khởi tạo đối tượng singleton HIGH
+    data object MEDIUM : Filter() // Khởi tạo đối tượng singleton MEDIUM
+    data object LOW : Filter() // Khởi tạo đối tượng singleton LOW
+    data object FAVORITE : Filter() // Khởi tạo đối tượng singleton FAVORITE
+    data object NONE : Filter() // Khởi tạo đối tượng singleton NONE
+    data class CATEGORY(val categoryId: String) : Filter() // CATEGORY có tham số categoryId
+
+    companion object {
+        // Có thể tạo các hàm tiện ích để lấy các Filter mặc định hoặc theo điều kiện
+        fun getDefaultFilter(): Filter = NONE
+    }
+
 }
 
-// Dữ liệu bổ sung khi sử dụng bộ lọc
-data class FilterData(
-    val filter: Filter = Filter.NONE,
-    val folderId: String? = null,         // Sử dụng khi filter là FOLDER
-    val tagId: String? = null,            // Sử dụng khi filter là TAG
-    val category: String? = null          // Sử dụng khi filter là AUTO_CATEGORY
-)

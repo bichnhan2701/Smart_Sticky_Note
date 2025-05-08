@@ -9,9 +9,11 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +56,8 @@ fun HomeScreen(
 ) {
     val notes by viewModel.notes.collectAsState()
     val filter by viewModel.setFilter.collectAsState()
+    val categories by viewModel.categories.collectAsState()
+
     var searchInput by remember { mutableStateOf("") }
     var noteToDelete by remember { mutableStateOf<Note?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -93,20 +97,12 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     // Thư mục
-                    IconButton(onClick = { navController.navigate(Screen.Folders.route) }) {
+                    IconButton(onClick = { navController.navigate(Screen.Category.route) }) {
                         Icon(
-                            painter = painterResource(id = R.drawable.folder_open),
+                            painter = painterResource(id = R.drawable.folder_svgrepo_com),
                             contentDescription = "Quản lý thư mục",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    
-                    // Thẻ
-                    IconButton(onClick = { navController.navigate(Screen.Tags.route) }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.label),
-                            contentDescription = "Quản lý thẻ",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(28.dp)
                         )
                     }
                 }
@@ -129,29 +125,55 @@ fun HomeScreen(
                 Icon(
                     painter = painterResource(id = R.drawable.filter_xmark_svgrepo_com),
                     contentDescription = "Clear Filter",
-                    modifier = Modifier.clickable { viewModel.setFilter(Filter.NONE) }
+                    modifier = Modifier.clickable { viewModel.setFilter(Filter.NONE) }.size(28.dp)
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 FilterChip(
-                    text = "High",
+                    text = "Cao",
                     selected = filter == Filter.HIGH,
                     onClick = { viewModel.setFilter(Filter.HIGH) }
                 )
                 FilterChip(
-                    text = "Medium",
+                    text = "Trung bình",
                     selected = filter == Filter.MEDIUM,
                     onClick = { viewModel.setFilter(Filter.MEDIUM) }
                 )
                 FilterChip(
-                    text = "Low",
+                    text = "Thấp",
                     selected = filter == Filter.LOW,
                     onClick = { viewModel.setFilter(Filter.LOW) }
                 )
                 FilterChip(
-                    text = "Favorite",
+                    text = "Thích",
                     selected = filter == Filter.FAVORITE,
                     onClick = { viewModel.setFilter(Filter.FAVORITE) }
                 )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Danh mục",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+            )
+            // Category Filter Chips
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(categories) { category ->
+                    FilterChip(
+                        text = category.title,
+                        selected = filter is Filter.CATEGORY && (filter as Filter.CATEGORY).categoryId == category.id,
+                        onClick = {
+                            viewModel.setCategoryFilter(category.id)
+                        }
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -193,11 +215,13 @@ fun HomeScreen(
             ) {
                 items(notes) { note ->
                     Log.d("NoteState", "Title: ${note.title}, isPin: ${note.isPin}")
+                    val categoryName = categories.find { it.id == note.categoryId }?.title ?: "Không có"
 
                     NoteItem(
                         title = note.title,
                         content = note.content,
                         color = getColorByPriority(note.priorityRate),
+                        categoryName = categoryName,
                         isPinned = note.isPin,
                         isFavorite = note.isFavorite,
                         onPin = {

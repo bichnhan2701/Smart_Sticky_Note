@@ -33,6 +33,7 @@ fun NoteItem(
     title: String,
     content: String,
     color: Color,
+    categoryName: String,
     isPinned: Boolean,
     isFavorite: Boolean,
     modifier: Modifier = Modifier,
@@ -112,6 +113,17 @@ fun NoteItem(
                     )
                 }
             }
+
+            // 🆕 Tên danh mục
+            Text(
+                text = categoryName,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.DarkGray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
 
             // Content Text
             Text(

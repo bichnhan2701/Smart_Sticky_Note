@@ -2,64 +2,42 @@ package com.example.smartstickynote.data.repository
 
 import android.util.Log
 import com.example.smartstickynote.data.local.dao.NoteDao
-import com.example.smartstickynote.data.local.dao.TagDao
 import com.example.smartstickynote.data.remote.FirebaseNoteDataSource
 import com.example.smartstickynote.domain.mapper.toEntity
 import com.example.smartstickynote.domain.mapper.toDomain
 import com.example.smartstickynote.domain.model.Filter
 import com.example.smartstickynote.domain.model.Note
-import com.example.smartstickynote.domain.model.Tag
 import com.example.smartstickynote.domain.repository.NoteRepository
-import com.example.smartstickynote.utils.AutoCategorizer
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class NoteRepositoryImpl @Inject constructor(
     private val dao: NoteDao,
-    private val tagDao: TagDao,
-    private val firebase: FirebaseNoteDataSource,
-    private val autoCategorizer: AutoCategorizer
+    private val firebase: FirebaseNoteDataSource
 ) : NoteRepository {
+
     override suspend fun addNote(note: Note) {
-        // Trước khi thêm ghi chú, tạo các danh mục tự động
-        val categories = autoCategorizer.suggestCategories(note)
-        val categoriesJson = autoCategorizer.categoriesToJson(categories)
-        
-        val noteWithCategories = note.copy(autoCategories = categories)
-        val entity = noteWithCategories.toEntity().copy(autoCategories = categoriesJson)
-        dao.insertNote(entity)
+        dao.insertNote(note.toEntity())
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId != null) {
+            firebase.uploadNote(note, userId) // Upload Firebase
+        }
     }
 
     override suspend fun deleteNote(note: Note, userId: String) {
-        // Xóa tất cả các liên kết với thẻ
-        tagDao.removeAllTagsForNote(note.id)
         dao.deleteNote(note.toEntity())
         firebase.deleteNote(note.id, userId)
     }
 
     override fun getNoteById(id: String): Flow<Note?> {
-        return dao.getNoteById(id).map { entity ->
-            entity?.let {
-                val note = it.toDomain()
-                val autoCategories = autoCategorizer.jsonToCategories(it.autoCategories)
-                // Không cần chuyển đổi tags ở đây, vì TagRepository sẽ xử lý
-                note.copy(autoCategories = autoCategories)
-            }
-        }
+        return dao.getNoteById(id).map { it?.toDomain() }
     }
 
     override suspend fun updateNote(note: Note) {
-        // Khi cập nhật ghi chú, cập nhật lại các danh mục tự động
-        val categories = autoCategorizer.suggestCategories(note)
-        val categoriesJson = autoCategorizer.categoriesToJson(categories)
-        
-        val noteWithCategories = note.copy(
-            autoCategories = categories,
-            updatedAt = System.currentTimeMillis()
-        )
-        val entity = noteWithCategories.toEntity().copy(autoCategories = categoriesJson)
-        dao.updateNote(entity)
+        val update = note.copy(updatedAt = System.currentTimeMillis())
+        dao.updateNote(update.toEntity())
     }
 
     override suspend fun toggleFavorite(note: Note) {
@@ -74,53 +52,17 @@ class NoteRepositoryImpl @Inject constructor(
 
     override fun getNotes(filter: Filter): Flow<List<Note>> {
         return when (filter) {
-            Filter.HIGH -> dao.getNotesByPriority("High")
-            Filter.MEDIUM -> dao.getNotesByPriority("Medium")
-            Filter.LOW -> dao.getNotesByPriority("Low")
-            Filter.FAVORITE -> dao.getFavoriteNotes()
-            Filter.NONE -> dao.getAllNotes()
-            Filter.FOLDER, Filter.TAG, Filter.AUTO_CATEGORY -> dao.getAllNotes()
-            else -> dao.getAllNotes()
-        }.map { entities ->
-            entities.map { entity ->
-                val note = entity.toDomain()
-                val autoCategories = autoCategorizer.jsonToCategories(entity.autoCategories)
-                note.copy(autoCategories = autoCategories)
-            }
-        }
+            is Filter.HIGH -> dao.getNotesByPriority("Cao")
+            is Filter.MEDIUM -> dao.getNotesByPriority("Trung bình")
+            is Filter.LOW -> dao.getNotesByPriority("Thấp")
+            is Filter.FAVORITE -> dao.getFavoriteNotes()
+            is Filter.NONE -> dao.getAllNotes()
+            is Filter.CATEGORY -> dao.getNotesByCategory(filter.categoryId) // categoryId có thể là NULL
+        }.map { it.map { entity -> entity.toDomain() } }
     }
 
     override suspend fun getNotesForWidget(): Note? {
         return dao.getPinNote()?.toDomain()
-    }
-    
-    override fun searchNotes(query: String): Flow<List<Note>> {
-        return dao.searchNotes(query).map { entities ->
-            entities.map { entity ->
-                val note = entity.toDomain()
-                val autoCategories = autoCategorizer.jsonToCategories(entity.autoCategories)
-                note.copy(autoCategories = autoCategories)
-            }
-        }
-    }
-    
-    override fun getNotesByAutoCategory(category: String): Flow<List<Note>> {
-        return dao.getNotesByAutoCategory(category).map { entities ->
-            entities.map { entity ->
-                val note = entity.toDomain()
-                val autoCategories = autoCategorizer.jsonToCategories(entity.autoCategories)
-                note.copy(autoCategories = autoCategories)
-            }
-        }
-    }
-    
-    override suspend fun updateAutoCategories(noteId: String, categories: List<String>) {
-        val note = dao.getNoteByIdOnce(noteId)
-        note?.let {
-            val categoriesJson = autoCategorizer.categoriesToJson(categories)
-            val updated = it.copy(autoCategories = categoriesJson)
-            dao.updateNote(updated)
-        }
     }
 
     override suspend fun syncAllNotesToFirebase(userId: String) {
@@ -140,5 +82,13 @@ class NoteRepositoryImpl @Inject constructor(
                 dao.insertNote(note.toEntity())
             }
         }
+    }
+
+    override fun getNotesByCategory(categoryId: String?): Flow<List<Note>> {
+        return dao.getNotesByCategory(categoryId).map { it.map { entity -> entity.toDomain() } }
+    }
+
+    override suspend fun clearAllLocalNotes() {
+        dao.clearAllNotes()
     }
 }

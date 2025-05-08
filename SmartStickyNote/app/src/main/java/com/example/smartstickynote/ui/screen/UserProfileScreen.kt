@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -31,6 +33,7 @@ import com.example.smartstickynote.R
 import com.example.smartstickynote.ui.components.BottomNavBar
 import com.example.smartstickynote.navigation.Screen
 import com.example.smartstickynote.ui.components.ActionButton
+import com.example.smartstickynote.ui.viewmodel.CategoryViewModel
 import com.example.smartstickynote.ui.viewmodel.NoteViewModel
 import com.example.smartstickynote.ui.viewmodel.UserProfileViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -40,7 +43,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 fun UserProfileScreen(
     navController: NavController,
     viewModel: UserProfileViewModel = hiltViewModel(),
-    noteViewModel: NoteViewModel = hiltViewModel()
+    noteViewModel: NoteViewModel = hiltViewModel(),
+    categoryViewModel: CategoryViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     // Google Sign-In launcher
@@ -69,10 +73,17 @@ fun UserProfileScreen(
     val googleSignInClient = remember { GoogleSignIn.getClient(context, gso) }
 
     val wasLoggedIn = remember { mutableStateOf(false) }
-    LaunchedEffect(viewModel.isUserLoggedIn) {
-        if (viewModel.isUserLoggedIn && !wasLoggedIn.value) {
+//    LaunchedEffect(viewModel.isUserLoggedIn) {
+//        if (viewModel.isUserLoggedIn && !wasLoggedIn.value) {
+//            categoryViewModel.restoreCategories()
+//            noteViewModel.restoreNotes()
+//            wasLoggedIn.value = true
+//        }
+//    }
+    LaunchedEffect(viewModel.user) {
+        if (viewModel.user != null) {
+            categoryViewModel.restoreCategories()
             noteViewModel.restoreNotes()
-            wasLoggedIn.value = true
         }
     }
 
@@ -99,7 +110,7 @@ fun UserProfileScreen(
                     // Hiển thị tên người dùng
                     Text(
                         text = "${viewModel.user?.displayName}",
-                        fontSize = 20.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF39544F),
                         modifier = Modifier.padding(top = 16.dp)
@@ -115,6 +126,8 @@ fun UserProfileScreen(
                     // Nếu chưa đăng nhập, hiển thị như mặc định
                     ProfileName()
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 ProfileSettings(
                     isDarkMode = viewModel.isDarkMode,
@@ -143,6 +156,8 @@ fun UserProfileScreen(
                         text = "Logout",
                         onClick = {
                             viewModel.signOut()
+                            noteViewModel.clearAllLocalNotes()
+                            categoryViewModel.clearAllLocalCategories()
                             Toast.makeText(context, "Logged out successfully!", Toast.LENGTH_SHORT).show()
                         },
                         containerColor = Color(0xFFE53935),
@@ -158,19 +173,33 @@ fun UserProfileScreen(
 }
 @Composable
 private fun ProfileHeader() {
+    val gradientColors = listOf(
+        Color(0xFF555BFF),
+        Color(0xFF55B5FF),
+        Color(0xFF9C55FF),
+        Color(0xFFD255FF),
+        Color(0xFFF955FF)
+    )
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(180.dp)
-            .background(Color(0xFFFFE6F0))
+            .background(
+                brush = Brush.linearGradient(
+                    colors = gradientColors,
+                    start = Offset(0f, Float.POSITIVE_INFINITY),
+                    end = Offset(Float.POSITIVE_INFINITY, 0f)
+                )
+            )
             .padding(top = 32.dp, bottom = 72.dp),
         contentAlignment = Alignment.TopCenter
     ) {
         Text(
-            text = "My profile",
-            fontSize = 24.sp,
+            text = "Your profile",
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF313F42)
+            color = Color(0xFFFFFFFF)
         )
     }
 }
@@ -185,7 +214,7 @@ private fun ProfileName() {
     ) {
         Text(
             text = "No user signed in",
-            fontSize = 20.sp,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Normal,
             color = Color(0xFF39544F)
         )
@@ -199,9 +228,9 @@ private fun ProfileSettings(
     onAboutClick: () -> Unit
 ) {
     Text(
-        text = "Settings",
+        text = "Your settings",
         fontWeight = FontWeight.Bold,
-        fontSize = 18.sp,
+        fontSize = 20.sp,
         color = Color(0xFF313F42),
         modifier = Modifier
             .padding(start = 16.dp, bottom = 8.dp).fillMaxWidth(),
@@ -218,7 +247,8 @@ private fun ProfileSettings(
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = Color.Blue,
                     uncheckedThumbColor = Color.Gray
-                )
+                ),
+                modifier = Modifier.size(24.dp).padding(end = 16.dp)
             )
         }
     )
@@ -259,7 +289,7 @@ private fun ProfileAvatar(photoUrl: String? = null) {
     ) {
         Box(
             modifier = Modifier
-                .size(135.dp)
+                .size(120.dp)
                 .clip(CircleShape)
                 .shadow(elevation = 8.dp, shape = CircleShape),
             contentAlignment = Alignment.Center
@@ -269,16 +299,16 @@ private fun ProfileAvatar(photoUrl: String? = null) {
                     model = photoUrl,
                     contentDescription = "User Avatar",
                     modifier = Modifier
-                        .size(130.dp)
+                        .size(115.dp)
                         .clip(CircleShape)
                         .background(Color.Gray)
                 )
             } else {
                 Image(
-                    painter = painterResource(id = R.drawable.meo_loading),
+                    painter = painterResource(id = R.drawable.img),
                     contentDescription = "Default Avatar",
                     modifier = Modifier
-                        .size(130.dp)
+                        .size(115.dp)
                         .clip(CircleShape)
                         .background(Color.Gray)
                 )
@@ -303,7 +333,8 @@ fun SettingItem(
         Icon(
             painter = icon,
             contentDescription = null,
-            tint = Color(0xFF9485AC)
+            tint = Color(0xFF9485AC),
+            modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
         Text(
