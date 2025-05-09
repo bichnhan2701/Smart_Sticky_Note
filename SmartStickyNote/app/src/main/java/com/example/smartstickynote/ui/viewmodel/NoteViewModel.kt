@@ -160,4 +160,22 @@ class NoteViewModel @Inject constructor(
         }
     }
 
+    fun testInsertNoteWithInvalidCategory() {
+        viewModelScope.launch {
+            val invalidNote = Note(
+                id = "test-id",
+                title = "Note lỗi",
+                content = "Sẽ crash nếu categoryId không tồn tại",
+                priorityRate = "Medium",
+                isFavorite = false,
+                isPin = false,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis(),
+                categoryId = "non-existent-id"
+            )
+            addNote(invalidNote)
+        }
+    }
+
+
 }

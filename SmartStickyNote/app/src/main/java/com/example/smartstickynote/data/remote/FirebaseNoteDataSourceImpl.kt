@@ -18,11 +18,31 @@ class FirebaseNoteDataSourceImpl @Inject constructor(
 
     override suspend fun uploadNote(note: Note, userId: String) {
         Log.d("SYNC", "Uploading note: ${note.id} for user $userId")
-        database.child("notes").child(userId).child("notes").child("note ${note.id}").setValue(note)
+        try {
+            database.child("notes").child(userId).child("notes").child("note ${note.id}").setValue(note)
+                .addOnSuccessListener {
+                    Log.d("SYNC", "Note uploaded successfully: ${note.id}")
+                }
+                .addOnFailureListener { error ->
+                    Log.e("SYNC", "Failed to upload note: ${note.id}", error)
+                }
+        } catch (exception: Exception) {
+            Log.e("SYNC", "Exception occurred while uploading note: ${note.id}", exception)
+        }
     }
 
     override suspend fun deleteNote(noteId: String, userId: String) {
-        database.child("notes").child(userId).child("notes").child("note $noteId").removeValue()
+        try {
+            database.child("notes").child(userId).child("notes").child("note $noteId").removeValue()
+                .addOnSuccessListener {
+                    Log.d("SYNC", "Note deleted successfully: $noteId")
+                }
+                .addOnFailureListener { error ->
+                    Log.e("SYNC", "Failed to delete note: $noteId", error)
+                }
+        } catch (exception: Exception) {
+            Log.e("SYNC", "Exception occurred while deleting note: $noteId", exception)
+        }
     }
 
     override suspend fun getAllNotes(userId: String): List<Note> = suspendCoroutine { cont ->
@@ -34,17 +54,38 @@ class FirebaseNoteDataSourceImpl @Inject constructor(
                 }
 
                 override fun onCancelled(error: DatabaseError) {
+                    Log.e("SYNC", "Error fetching notes: ${error.message}", error.toException())
                     cont.resumeWithException(error.toException())
                 }
             })
     }
 
     override suspend fun uploadCategory(category: Category, userId: String) {
-        database.child("notes").child(userId).child("categories").child(category.id).setValue(category)
+        try {
+            database.child("notes").child(userId).child("categories").child(category.id).setValue(category)
+                .addOnSuccessListener {
+                    Log.d("SYNC", "Category uploaded successfully: ${category.id}")
+                }
+                .addOnFailureListener { error ->
+                    Log.e("SYNC", "Failed to upload category: ${category.id}", error)
+                }
+        } catch (exception: Exception) {
+            Log.e("SYNC", "Exception occurred while uploading category: ${category.id}", exception)
+        }
     }
 
     override suspend fun deleteCategory(categoryId: String, userId: String) {
-        database.child("notes").child(userId).child("categories").child(categoryId).removeValue()
+        try {
+            database.child("notes").child(userId).child("categories").child(categoryId).removeValue()
+                .addOnSuccessListener {
+                    Log.d("SYNC", "Category deleted successfully: $categoryId")
+                }
+                .addOnFailureListener { error ->
+                    Log.e("SYNC", "Failed to delete category: $categoryId", error)
+                }
+        } catch (exception: Exception) {
+            Log.e("SYNC", "Exception occurred while deleting category: $categoryId", exception)
+        }
     }
 
     override suspend fun getAllCategories(userId: String): List<Category> = suspendCoroutine { cont ->
@@ -56,10 +97,11 @@ class FirebaseNoteDataSourceImpl @Inject constructor(
                 }
 
                 override fun onCancelled(error: DatabaseError) {
+                    Log.e("SYNC", "Error fetching categories: ${error.message}", error.toException())
                     cont.resumeWithException(error.toException())
                 }
             })
     }
-
 }
+
 
