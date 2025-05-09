@@ -38,6 +38,8 @@ import com.example.smartstickynote.ui.viewmodel.NoteViewModel
 import com.example.smartstickynote.ui.viewmodel.UserProfileViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import androidx.navigation.NavHostController
+
 
 @Composable
 fun UserProfileScreen(
@@ -63,6 +65,7 @@ fun UserProfileScreen(
             Toast.makeText(context, "Sign-in cancelled", Toast.LENGTH_SHORT).show()
         }
     }
+
     // Google SignIn options
     val gso = remember {
         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -122,6 +125,7 @@ fun UserProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 ProfileSettings(
+                    navController = navController as NavHostController,
                     isDarkMode = viewModel.isDarkMode,
                     onDarkModeChange = { viewModel.toggleDarkMode() },
                     onHelpClick = {},
@@ -163,6 +167,7 @@ fun UserProfileScreen(
         }
     }
 }
+
 @Composable
 private fun ProfileHeader() {
     val gradientColors = listOf(
@@ -195,6 +200,7 @@ private fun ProfileHeader() {
         )
     }
 }
+
 @Composable
 private fun ProfileName() {
     Row(
@@ -212,26 +218,27 @@ private fun ProfileName() {
         )
     }
 }
+
 @Composable
 private fun ProfileSettings(
+    navController: NavHostController,
     isDarkMode: Boolean,
     onDarkModeChange: (Boolean) -> Unit,
     onHelpClick: () -> Unit,
     onAboutClick: () -> Unit
 ) {
     Text(
-        text = "Your settings",
+        text = "Cài đặt",
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp,
         color = Color(0xFF313F42),
         modifier = Modifier
             .padding(start = 16.dp, bottom = 8.dp).fillMaxWidth(),
         textAlign = TextAlign.Start
-
     )
     SettingItem(
         icon = painterResource(id = R.drawable.dark_mode_night_moon_svgrepo_com),
-        title = "Dark mode",
+        title = "Chế độ tối",
         trailing = {
             Switch(
                 checked = isDarkMode,
@@ -246,8 +253,10 @@ private fun ProfileSettings(
     )
     SettingItem(
         icon = painterResource(id = R.drawable.help_svgrepo_com),
-        title = "Help",
-        onClick = onHelpClick,
+        title = "Hỗ trợ",
+        onClick = {
+            navController.navigate(Screen.Help.route)
+        },
         trailing = {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
@@ -259,8 +268,10 @@ private fun ProfileSettings(
     )
     SettingItem(
         icon = painterResource(id = R.drawable.about_svgrepo_com),
-        title = "About",
-        onClick = onAboutClick,
+        title = "Giới thiệu",
+        onClick = {
+            navController.navigate(Screen.About.route)
+        },
         trailing = {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
@@ -271,6 +282,7 @@ private fun ProfileSettings(
         }
     )
 }
+
 @Composable
 private fun ProfileAvatar(photoUrl: String? = null) {
     Box(
@@ -308,6 +320,7 @@ private fun ProfileAvatar(photoUrl: String? = null) {
         }
     }
 }
+
 @Composable
 fun SettingItem(
     icon: androidx.compose.ui.graphics.painter.Painter,

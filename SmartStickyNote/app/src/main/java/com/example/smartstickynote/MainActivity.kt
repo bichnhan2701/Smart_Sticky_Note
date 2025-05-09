@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.navigation.compose.rememberNavController
 import com.example.smartstickynote.domain.repository.PreferencesRepository
 import com.example.smartstickynote.navigation.NavGraph
+import com.example.smartstickynote.ui.theme.SmartStickyNoteTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

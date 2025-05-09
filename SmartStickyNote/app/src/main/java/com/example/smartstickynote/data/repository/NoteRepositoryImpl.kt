@@ -96,9 +96,8 @@ class NoteRepositoryImpl @Inject constructor(
             val localNote = dao.getNoteByIdOnce(note.id)?.toDomain()
             if (localNote == null || note.updatedAt > localNote.updatedAt) {
                 val sanitizedCategoryId = sanitizeCategoryId(note.categoryId)
-                Log.d("SYNC", "Sanitized categoryId for note '${note.title}': ${sanitizedCategoryId}")
+                Log.d("SYNC", "Sanitized categoryId for note '${note.title}': $sanitizedCategoryId")
                 val updatedNote = note.copy(categoryId = sanitizedCategoryId)
-
                 dao.insertNote(updatedNote.toEntity())
             }
         }
