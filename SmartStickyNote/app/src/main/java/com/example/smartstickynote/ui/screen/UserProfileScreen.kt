@@ -75,8 +75,6 @@ fun UserProfileScreen(
     }
     val googleSignInClient = remember { GoogleSignIn.getClient(context, gso) }
 
-    val wasLoggedIn = remember { mutableStateOf(false) }
-
     LaunchedEffect(viewModel.user) {
         if (viewModel.user != null) {
             categoryViewModel.restoreCategories()

@@ -1,6 +1,7 @@
 package com.example.smartstickynote.data.repository
 
 import android.util.Log
+import com.example.smartstickynote.data.local.dao.CategoryDao
 import com.example.smartstickynote.data.local.dao.NoteDao
 import com.example.smartstickynote.data.remote.FirebaseNoteDataSource
 import com.example.smartstickynote.domain.mapper.toEntity
@@ -15,16 +16,28 @@ import javax.inject.Inject
 
 class NoteRepositoryImpl @Inject constructor(
     private val dao: NoteDao,
+    private val categoryDao: CategoryDao,
     private val firebase: FirebaseNoteDataSource
 ) : NoteRepository {
 
+    // Helper function to validate categoryId
+    private suspend fun sanitizeCategoryId(categoryId: String?): String? {
+        val exists = categoryId != null && categoryDao.getCategoryByIdOnce(categoryId) != null
+        Log.d("SANITIZE", "CategoryId $categoryId exists: $exists")
+        return if (exists) categoryId else null
+    }
+
     override suspend fun addNote(note: Note) {
-        dao.insertNote(note.toEntity())
+        val validCategoryId = sanitizeCategoryId(note.categoryId) // Kiểm tra categoryId có hợp lệ không
+        val updatedNote = note.copy(categoryId = validCategoryId) // Cập nhật ghi chú với categoryId hợp lệ
+        dao.insertNote(updatedNote.toEntity())
+
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId != null) {
-            firebase.uploadNote(note, userId) // Upload Firebase
+            firebase.uploadNote(updatedNote, userId) // Upload Firebase
         }
     }
+
 
     override suspend fun deleteNote(note: Note, userId: String) {
         dao.deleteNote(note.toEntity())
@@ -36,8 +49,11 @@ class NoteRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateNote(note: Note) {
-        val update = note.copy(updatedAt = System.currentTimeMillis())
-        dao.updateNote(update.toEntity())
+        // Sanitize categoryId before updating note
+        val sanitizedCategoryId = sanitizeCategoryId(note.categoryId)
+        val updatedNote = note.copy(categoryId = sanitizedCategoryId, updatedAt = System.currentTimeMillis())
+
+        dao.updateNote(updatedNote.toEntity())
     }
 
     override suspend fun toggleFavorite(note: Note) {
@@ -79,7 +95,11 @@ class NoteRepositoryImpl @Inject constructor(
         notesFromCloud.forEach { note ->
             val localNote = dao.getNoteByIdOnce(note.id)?.toDomain()
             if (localNote == null || note.updatedAt > localNote.updatedAt) {
-                dao.insertNote(note.toEntity())
+                val sanitizedCategoryId = sanitizeCategoryId(note.categoryId)
+                Log.d("SYNC", "Sanitized categoryId for note '${note.title}': $sanitizedCategoryId")
+                val updatedNote = note.copy(categoryId = sanitizedCategoryId)
+
+                dao.insertNote(updatedNote.toEntity())
             }
         }
     }

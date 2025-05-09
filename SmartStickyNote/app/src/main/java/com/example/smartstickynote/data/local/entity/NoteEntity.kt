@@ -11,7 +11,8 @@ import androidx.room.PrimaryKey
             entity = CategoryEntity::class,
             parentColumns = ["id"],
             childColumns = ["categoryId"],
-            onDelete = ForeignKey.SET_NULL // Cho phép NULL khi xóa danh mục
+            onDelete = ForeignKey.SET_NULL ,// Cho phép NULL khi xóa danh mục
+            deferred = true
         )
     ]
 )

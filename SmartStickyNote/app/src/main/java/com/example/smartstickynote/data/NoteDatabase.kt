@@ -12,7 +12,7 @@ import com.example.smartstickynote.data.local.entity.NoteEntity
         NoteEntity::class,
         CategoryEntity::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 abstract class NoteDatabase : RoomDatabase() {
