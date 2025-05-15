@@ -47,7 +47,7 @@ fun NoteContentItem(
                 Box {
                     if (value.isEmpty() && !readOnly) {
                         Text(
-                            text = "Add your content",
+                            text = "Thêm nội dung...",
                             color = Color.Gray,
                             fontSize = 16.sp
                         )
@@ -57,13 +57,13 @@ fun NoteContentItem(
             }
         )
 
-        if (!readOnly) {
-            Icon(
-                painter = painterResource(id = R.drawable.attach_svgrepo_com),
-                contentDescription = "Attach",
-                modifier = Modifier.align(Alignment.TopEnd),
-                tint = Color(0xFF3F51B5)
-            )
-        }
+//        if (!readOnly) {
+//            Icon(
+//                painter = painterResource(id = R.drawable.attach_svgrepo_com),
+//                contentDescription = "Attach",
+//                modifier = Modifier.align(Alignment.TopEnd),
+//                tint = Color(0xFF3F51B5)
+//            )
+//        }
     }
 }

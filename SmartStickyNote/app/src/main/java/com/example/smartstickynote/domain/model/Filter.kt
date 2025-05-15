@@ -12,6 +12,5 @@ sealed class Filter {
         // Có thể tạo các hàm tiện ích để lấy các Filter mặc định hoặc theo điều kiện
         fun getDefaultFilter(): Filter = NONE
     }
-
 }
 

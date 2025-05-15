@@ -138,7 +138,7 @@ fun UserProfileScreen(
                     CircularProgressIndicator(modifier = Modifier.padding(16.dp))
                 } else if (!viewModel.isUserLoggedIn) {
                     ActionButton(
-                        text = "Login with Google",
+                        text = "Đăng nhập bằng Google",
                         onClick = {
                             val signInIntent = googleSignInClient.signInIntent
                             googleSignInLauncher.launch(signInIntent)
@@ -149,12 +149,12 @@ fun UserProfileScreen(
                     )
                 } else {
                     ActionButton(
-                        text = "Logout",
+                        text = "Đăng xuất",
                         onClick = {
                             viewModel.signOut()
                             noteViewModel.clearAllLocalNotes()
                             categoryViewModel.clearAllLocalCategories()
-                            Toast.makeText(context, "Logged out successfully!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Đăng xuất thành công!", Toast.LENGTH_SHORT).show()
                         },
                         containerColor = Color(0xFFE53935),
                         contentColor = Color.White,
@@ -193,7 +193,7 @@ private fun ProfileHeader() {
         contentAlignment = Alignment.TopCenter
     ) {
         Text(
-            text = "Your profile",
+            text = "Hồ sơ của bạn",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFFFFFFFF)
@@ -211,7 +211,7 @@ private fun ProfileName() {
             .padding(top = 24.dp, bottom = 16.dp)
     ) {
         Text(
-            text = "No user signed in",
+            text = "Bạn chưa đăng nhập",
             fontSize = 18.sp,
             fontWeight = FontWeight.Normal,
             color = Color(0xFF39544F)

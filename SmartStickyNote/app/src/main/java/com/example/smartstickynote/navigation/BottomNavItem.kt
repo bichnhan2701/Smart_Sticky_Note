@@ -10,6 +10,6 @@ sealed class BottomNavItem(
     val icon: ImageVector,
     val label: String
 ) {
-    data object Home : BottomNavItem("home", Icons.Outlined.Home, "Home")
-    data object Profile : BottomNavItem("profile", Icons.Outlined.Person, "Profile")
+    data object Home : BottomNavItem("home", Icons.Outlined.Home, "Trang chủ")
+    data object Profile : BottomNavItem("profile", Icons.Outlined.Person, "Hồ sơ")
 }

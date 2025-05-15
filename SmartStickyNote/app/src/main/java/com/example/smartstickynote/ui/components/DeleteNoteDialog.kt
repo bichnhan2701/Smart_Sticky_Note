@@ -31,7 +31,7 @@ fun DeleteNoteDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Delete Note",
+                    text = "Xóa ghi chú",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -39,7 +39,7 @@ fun DeleteNoteDialog(
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Text(
-                    text = "Are you sure you want to delete this note? This action cannot be undone.",
+                    text = "Bạn có chắc chắn muốn xóa ghi chú này không?",
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center
                 )
@@ -56,7 +56,7 @@ fun DeleteNoteDialog(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Cancel")
+                        Text("Không")
                     }
                     
                     // Delete Button
@@ -68,7 +68,7 @@ fun DeleteNoteDialog(
                             containerColor = Color(0xFFF44336)
                         )
                     ) {
-                        Text("Delete")
+                        Text("Có")
                     }
                 }
             }

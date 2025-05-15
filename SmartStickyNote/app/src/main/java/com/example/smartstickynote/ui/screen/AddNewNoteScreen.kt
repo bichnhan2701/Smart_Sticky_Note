@@ -101,7 +101,7 @@ fun AddNewNoteScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                "Title",
+                "Tiêu đề",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )

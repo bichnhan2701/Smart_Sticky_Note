@@ -135,7 +135,7 @@ fun EditNoteScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Tiêu đề
-                Text("Title", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Tiêu đề", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = title,
@@ -143,7 +143,7 @@ fun EditNoteScreen(
                     textStyle = TextStyle(
                         fontSize = 16.sp
                     ),
-                    placeholder = { Text("Edit your title") },
+                    placeholder = { Text("Chỉnh sửa tiêu đề") },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -182,7 +182,7 @@ fun EditNoteScreen(
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 // Nội dung
-                Text("Content", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Nội dung", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
                 NoteContentItem(
                     value = content,
